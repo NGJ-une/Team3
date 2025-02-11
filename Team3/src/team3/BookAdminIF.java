@@ -5,10 +5,6 @@ public interface BookAdminIF {
 	String userList() throws Exception;
 	void userAdd() throws Exception;
 	
-	// 회원 수정
-	void userUpdate() throws Exception;
-	void userInfo() throws Exception;
-	   
 	// 책 등록 및 삭제
 	String bookList() throws Exception;
 	void bookAdd() throws Exception;
