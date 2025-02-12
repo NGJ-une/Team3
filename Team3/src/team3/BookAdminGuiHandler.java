@@ -1,6 +1,21 @@
 package team3;
 
 public interface BookAdminGuiHandler {
+	//로그인
+	String getloginId();
+	String getloginPw();
+	void setLoginMsg(String Message);
+	void setMenubar(boolean login_info);
+	
+	//회원가입
+	String getAdminId();
+	String getAdminPw();
+	String getAdminKey();
+	void setAdminId(String id);
+	void setAdminPw(String pw);
+	void setAdminKey(String key);
+	void setAdminAddMsg(String Message);
+	
 	// 회원 등록
 	String getUserAddName();
 	String getUserAddTel();
@@ -8,6 +23,31 @@ public interface BookAdminGuiHandler {
 	String getUserAddBirth();
 	void setUserAddMsg(String message);
 	void setUserList(String userList);
+	
+	// 회원 정보 수정
+	String getUserUpdateId();
+
+	String getUserUpdateName();
+
+	String getUserUpdateTel();
+
+	String getUserUpdateAddr();
+
+	String getUserUpdateBirth();
+
+	void setUserUpdateId(String id);
+
+	void setUserUpdateName(String name);
+
+	void setUserUpdateAddr(String addr);
+
+	void setUserUpdateTel(String tel);
+
+	void setUserUpdateBirth(String birth);
+
+	void setUserUpdateMsg(String message);
+
+	void setUserUpdateList(String userList);
 	
 	// 책 등록
 	String getBookAddGenre();

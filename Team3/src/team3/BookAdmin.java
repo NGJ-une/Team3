@@ -9,11 +9,13 @@ public class BookAdmin implements BookAdminIF {
 	private BookAdminGuiHandler gui;
 	private Connection con;
 	private int lendLimit;
+	private boolean login_info;
 	
 	public BookAdmin(BookAdminGuiHandler gui, Connection con) throws Exception {
 		this.gui = gui;
 		this.con = con;
 		lendLimit = 5;
+		login_info = false;
 	}
 	
 	public int getLendLimit() {
@@ -23,41 +25,186 @@ public class BookAdmin implements BookAdminIF {
 	public void setLendLimit(int lendLimit) {
 		this.lendLimit = lendLimit;
 	}
+
+	
+	@Override
+	public void setLoginStatus(boolean st) {
+		this.login_info = st;
+		
+	}
+	public void login() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+	    String url = "jdbc:oracle:thin:@localhost:1521:xe";
+	    String user = "scott";
+	    String pwd = "1234";
+	    Connection con = DriverManager.getConnection(url, user, pwd);
+	    String sql = "select * from admin where admin_id = ? and admin_pw = ?";
+	    PreparedStatement ps = con.prepareStatement(sql);
+	    ps.setString(1, gui.getloginId());
+	    ps.setString(2, gui.getloginPw());
+	    ResultSet rs = ps.executeQuery();
+	    if(rs.next()) {
+	    	login_info = true;
+	    	gui.setMenubar(login_info);
+	    }else {
+	    	if(gui.getloginId().equals("")||gui.getloginPw().equals("")) {
+	    		gui.setLoginMsg("로그인 정보가 입력되지 않았습니다. 입력한 로그인 정보를 확인해주세요.");
+	    	}else {
+	    		gui.setLoginMsg("로그인 정보가 일치하지 않습니다.");   		
+	    	}
+	    }
+	    rs.close();
+	    ps.close();
+	    con.close();
+	}
+
+	//회원가입 메서드
+	public void adminAdd() throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
+	    String url = "jdbc:oracle:thin:@localhost:1521:xe";
+	    String user = "scott";
+	    String pwd = "1234";
+	    Connection con = DriverManager.getConnection(url, user, pwd);
+	    String sql = "select * from admin where admin_id = ?";
+	    PreparedStatement ps = con.prepareStatement(sql);
+	    ps.setString(1, gui.getAdminId());
+	    ResultSet rs = ps.executeQuery();
+	    if(rs.next()) {
+	    	if(gui.getAdminId().equals("") || gui.getAdminPw().equals("") || gui.getAdminKey().equals("")) {
+	    		gui.setAdminAddMsg("입력 정보가 모두 입려되지 않았습니다. 입력 정보를 확인해주세요.");	    			    		
+	    	}else {
+	    		if(gui.getAdminKey().equals("1234")) {
+	    			gui.setAdminAddMsg("중복된 ID입니다.");	    			    			    		
+	    		}else {
+	    			gui.setAdminAddMsg("관리자 키를 잘못 입력하였습니다. 관리자 키를 확인해주세요.");	    			    			    			    			    		
+	    		}	    		
+	    	}
+	    }else {
+	    	if(gui.getAdminId().equals("") || gui.getAdminPw().equals("") || gui.getAdminKey().equals("")) {
+	    		gui.setAdminAddMsg("입력 정보가 모두 입려되지 않았습니다. 입력 정보를 확인해주세요.");	    			    		
+	    	}else {
+	    		if(gui.getAdminKey().equals("1234")) {
+	    			sql = "insert into admin values (?, ?)";
+	    			ps = con.prepareStatement(sql);
+	    			ps.setString(1, gui.getAdminId());
+	    			ps.setString(2, gui.getAdminPw());
+	    			ps.execute();
+	    			gui.setAdminId("");
+	    			gui.setAdminPw("");
+	    			gui.setAdminKey("");
+	    			gui.setAdminAddMsg("회원가입이 완료되었습니다.");	    			    			    			    			    		
+	    		}else {
+	    			gui.setAdminAddMsg("관리자 키를 잘못 입력하였습니다. 관리자 키를 확인해주세요.");	    			    			    			    			    		    			    		
+	    		}    			    		
+	    	}
+	    }
+	    rs.close();
+	    ps.close();
+	    con.close();
+	}
+	
+	
+	
 	
 	@Override
 	public String userList() throws Exception {
-		
-	    String sql = "select person_id, person_name, birth from person order by person_id asc";
+	      
+		String sql = "select person_id, person_name, addr, tel, birth from person order by person_id asc";
 	    PreparedStatement ps = con.prepareStatement(sql);
 	    ResultSet rs = ps.executeQuery();
-	    String str = "회원 번호\t이름\t      생년월일\n";
+	    String str = "회원번호   이름\t      주소        연락처\t        생년월일\n";
 	    while(rs.next()) {
-	       str = str+rs.getInt("person_id")+"\t            "+rs.getString("person_name")+"\t      "+rs.getString("birth")+"\n";
+	       str = str + rs.getInt("person_id")+"\t   "+String.format("%-"+(15-(rs.getString("person_name").length()*2))+"s", rs.getString("person_name"))
+	       		+ String.format("%-"+(14-(rs.getString("addr").length()*2))+"s", rs.getString("addr"))
+	       		+ String.format("%-"+(32-(rs.getString("tel").length()))+"s", rs.getString("tel"))
+	       		+ rs.getString("birth") + "\n";
 	    }
 	    rs.close();
 	    ps.close();
 	    return str;
 	}
+
 	
 	
-	//회원 등록
+	// 회원 등록1
 	@Override
 	public void userAdd() throws Exception {
-	    
-	    String sql = "insert into person (person_name,tel,addr,birth) values(?,?,?,?)";
-	    PreparedStatement ps = con.prepareStatement(sql);
-	    ps.setString(1, gui.getUserAddName());
-	    ps.setString(2, gui.getUserAddTel());
-	    ps.setString(3, gui.getUserAddAddr());
-	    ps.setString(4, gui.getUserAddBirth());
-	    ps.executeUpdate();
-	      
-	    gui.setUserAddMsg(gui.getUserAddName() + "님의 등록이 완료되었습니다.");
-	     
-	    gui.setUserList(userList());
-	      
-	    ps.close();
+
+		if (gui.getUserAddName().equals("") || gui.getUserAddTel().equals("") || gui.getUserAddAddr().equals("")
+				|| gui.getUserAddBirth().equals("")) {
+			gui.setUserAddMsg("필수 입력 정보를 확인해주세요.");
+
+		} else {
+			String sql = "insert into person (person_name,tel,addr,birth) values(?,?,?,?)";
+			PreparedStatement ps = con.prepareStatement(sql);
+			ps.setString(1, gui.getUserAddName());
+			ps.setString(2, gui.getUserAddTel());
+			ps.setString(3, gui.getUserAddAddr());
+			ps.setString(4, gui.getUserAddBirth());
+			ps.executeUpdate();
+
+			gui.setUserAddMsg(gui.getUserAddName() + "님의 등록이 완료되었습니다.");
+
+			gui.setUserList(userList());
+			ps.close();
+		}
 	}
+	
+	@Override
+	public void userInfo() throws Exception {
+		String sql = "select * from person where person_id = ?";
+		PreparedStatement ps = con.prepareStatement(sql);
+		ps.setInt(1, Integer.parseInt(gui.getUserUpdateId()));
+		ResultSet rs = ps.executeQuery();
+		if (rs.next()) {
+			gui.setUserUpdateName(rs.getString("person_name"));
+			gui.setUserUpdateAddr(rs.getString("addr"));
+			gui.setUserUpdateTel(rs.getString("tel"));
+			gui.setUserUpdateBirth(rs.getString("birth"));
+		} else {
+			if (gui.getUserUpdateId().equals("")) {
+				gui.setUserUpdateMsg("회원 번호가 입력되지 않았습니다.");
+			} else {
+				gui.setUserUpdateMsg("등록되지 않은 회원번호입니다. 회원번호를 확인해 주세요.");
+			}
+		}
+		rs.close();
+		ps.close();
+
+	}
+
+	// 회원 정보 수정 메서드
+	@Override
+	public void userUpdate() throws Exception {
+		if (gui.getUserUpdateName().equals("") || gui.getUserUpdateAddr().equals("")
+				|| gui.getUserUpdateTel().equals("") || gui.getUserUpdateBirth().equals("")) {
+			gui.setUserUpdateMsg("입력되지 않은 정보가 있습니다. 입력 정보를 확인해주세요.");
+			;
+		} else {
+			String sql = "update person set person_name = ? , addr = ?, tel = ?, birth = ? where person_id = ?";
+			PreparedStatement ps = con.prepareStatement(sql);
+			ps.setString(1, gui.getUserUpdateName());
+			ps.setString(2, gui.getUserUpdateAddr());
+			ps.setString(3, gui.getUserUpdateTel());
+			ps.setString(4, gui.getUserUpdateBirth());
+			ps.setString(5, gui.getUserUpdateId());
+			int count = ps.executeUpdate();
+			if (count > 0) {
+				gui.setUserUpdateMsg(gui.getUserUpdateName() + " 님의 정보가 수정 되었습니다.");
+				;
+				gui.setUserUpdateId("");
+				gui.setUserUpdateName("");
+				gui.setUserUpdateAddr("");
+				gui.setUserUpdateTel("");
+				gui.setUserUpdateBirth("");
+			} else {
+				gui.setUserUpdateMsg("회원 정보 변경에 실패하였습니다.");
+			}
+			gui.setUserUpdateList(userList());
+			ps.close();
+		}
+	}
+
 		
 	//책 정보 현황 메서드
 	@Override
@@ -337,6 +484,11 @@ public class BookAdmin implements BookAdminIF {
 		
 		rs.close();
 		ps.close();
+	}
+
+	@Override
+	public boolean getLoginStatus() {
+		return login_info;
 	}
 
 } 

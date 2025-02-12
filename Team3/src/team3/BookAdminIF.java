@@ -1,10 +1,20 @@
 package team3;
 
 public interface BookAdminIF {
+	//로그인
+	void login() throws Exception;
+	void adminAdd() throws Exception;
+	boolean getLoginStatus();
+	void setLoginStatus(boolean st);
+	
 	// 회원 등록
 	String userList() throws Exception;
 	void userAdd() throws Exception;
 	
+	// 회원 수정
+	void userUpdate() throws Exception;
+	void userInfo() throws Exception;
+	   
 	// 책 등록 및 삭제
 	String bookList() throws Exception;
 	void bookAdd() throws Exception;
@@ -24,4 +34,3 @@ public interface BookAdminIF {
 	void topTen() throws Exception;
 	
 }
-
